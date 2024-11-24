@@ -1,0 +1,128 @@
+﻿1. This output shows the distribution of different diagnoses in the dataset. - CD: Conduction Disturbance - HYP: Hypertrophy - MI: Myocardial Infarction - NORM: Normal ECG - STTC: ST/T Change
+
+
+ubuntu@ip-172-31-47-241:~$ hadoop fs -cat /ecg_output/diagnosis_distribution/part-00000
+CD        3912
+HYP        2121
+MI        4389
+NORM        7607
+STTC        4193
+
+
+2. This output shows the average age of patients for each diagnosis category, indicating that most cardiac conditions (CD, HYP, MI, STTC) occur in older age groups, while the average age for normal ECGs is lower. 
+
+
+ubuntu@ip-172-31-47-241:~$ hadoop fs -cat /ecg_output/average_age/part-00000
+CD        65.34
+HYP        65.88
+MI        65.86
+NORM        52.38
+STTC        66.36
+
+
+3. This output analyzes the correlation between age groups and diagnoses. It shows that cardiac conditions like CD, HYP, MI, and STTC are more prevalent in older age groups (50+), while younger age groups (<30) have more normal ECGs. 
+
+
+hadoop fs -cat /ecg_output/age_diagnosis_correlation/part-00000
+30-40_CD
+	133
+	30-40_HYP
+	70
+	30-40_MI
+	85
+	30-40_NORM
+	894
+	30-40_STTC
+	96
+	40-50_CD
+	246
+	40-50_HYP
+	136
+	40-50_MI
+	294
+	40-50_NORM
+	1280
+	40-50_STTC
+	270
+	50-60_CD
+	669
+	50-60_HYP
+	374
+	50-60_MI
+	915
+	50-60_NORM
+	1688
+	50-60_STTC
+	771
+	60+_CD
+2714
+	
+
+	60+_HYP 1492
+	
+
+	60+_M1
+3039
+	
+
+	60+_NORM
+	2800
+	60+_STTC
+	2966
+	<30_CD 117
+	
+
+	<30_HYP 34
+	
+
+	<30_MI 29
+	
+
+	<30_NORM
+	940
+	<30_STTC
+	66
+	
+
+
+
+4. This output indicates the average weight of patients for each diagnosis category. Patients with normal ECGs (NORM) tend to have slightly higher average weights, while patients with HYP have the lowest average weight. 
+
+
+ubuntu@ip-172-31-47-241:~$ hadoop fs -cat /ecg_output/weight_diagnosis_correlation/part-00000
+CD        70.47
+HYP        68.83
+MI        70.55
+NORM        70.94
+STTC        69.06
+
+
+
+
+5. This output shows the incremental weight analysis as we process increasing subsets of the dataset (25%, 50%, 75%, 100%). The results stabilize as the data size increases, demonstrating consistent weight patterns for each diagnosis category. 
+
+
+$ hadoop fs -cat /ecg_output/incremental/25/part-00000
+hadoop fs -cat /ecg_output/incremental/50/part-00000
+hadoop fs -cat /ecg_output/incremental/75/part-00000
+hadoop fs -cat /ecg_output/incremental/100/part-00000
+CD        71.93
+HYP        69.39
+MI        69.62
+NORM        71.11
+STTC        68.38
+CD        70.91
+HYP        70.08
+MI        70.24
+NORM        71.03
+STTC        68.89
+CD        70.62
+HYP        69.13
+MI        70.65
+NORM        71.00
+STTC        69.18
+CD        70.47
+HYP        68.83
+MI        70.55
+NORM        70.94
+STTC        69.06

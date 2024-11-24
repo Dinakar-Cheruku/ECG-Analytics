@@ -1,0 +1,152 @@
+﻿1. Hadoop Setup
+#Format the Hadoop Namenode
+hadoop namenode -format
+
+
+# Start Hadoop Distributed File System
+start-dfs.sh
+
+
+# Start Hadoop YARN
+start-yarn.sh
+
+
+# Check Hadoop services
+jps
+
+
+
+
+# 2. Upload Dataset to HDFS
+
+
+# Create directories in HDFS
+hadoop fs -mkdir /ecg_data
+hadoop fs -mkdir /ecg_data/splits
+hadoop fs -mkdir /ecg_output
+
+
+# Upload complete dataset to HDFS
+hadoop fs -put /home/ubuntu/ecg_data/train_meta.csv /ecg_data/
+hadoop fs -put /home/ubuntu/ecg_data/train_train.csv /ecg_data/
+
+
+
+
+# Upload incremental datasets to HDFS
+hadoop fs -put /home/ubuntu/ecg_data/splits/train_signal_25.csv /ecg_data/splits/
+hadoop fs -put /home/ubuntu/ecg_data/splits/train_signal_50.csv /ecg_data/splits/
+hadoop fs -put /home/ubuntu/ecg_data/splits/train_signal_75.csv /ecg_data/splits/
+hadoop fs -put /home/ubuntu/ecg_data/splits/train_signal_100.csv /ecg_data/splits/
+
+
+# List HDFS directories
+hadoop fs -ls /ecg_data
+hadoop fs -ls /ecg_data/splits
+
+
+
+
+# 3. Run Analytics MapReduce Jobs
+
+
+# Diagnosis Distribution
+hadoop jar /usr/local/hadoop/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-input /ecg_data/train_meta.csv \
+-output /ecg_output/diagnosis_distribution \
+-mapper /home/ubuntu/analysis/diagnosis_mapper.py \
+-reducer /home/ubuntu/analysis/diagnosis_reducer.py
+
+
+# Average Age by Diagnosis
+hadoop jar /usr/local/hadoop/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-input /ecg_data/train_meta.csv \
+-output /ecg_output/average_age \
+-mapper /home/ubuntu/analysis/age_mapper.py \
+-reducer /home/ubuntu/analysis/age_reducer.py
+
+
+# Weight-Diagnosis Correlation
+hadoop jar /usr/local/hadoop/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-input /ecg_data/train_meta.csv \
+-output /ecg_output/weight_diagnosis_correlation \
+-mapper /home/ubuntu/analysis/weight_mapper.py \
+-reducer /home/ubuntu/analysis/weight_reducer.py
+
+
+
+
+# 4. Incremental Data Processing
+
+
+# Prepare directories for output
+hadoop fs -mkdir -p /ecg_output/incremental/25
+hadoop fs -mkdir -p /ecg_output/incremental/50
+hadoop fs -mkdir -p /ecg_output/incremental/75
+hadoop fs -mkdir -p /ecg_output/incremental/100
+
+
+# Run weight analysis for incremental datasets
+hadoop jar /usr/local/hadoop/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-input /ecg_data/splits/train_meta_25.csv \
+-output /ecg_output/incremental/25 \
+-mapper /home/ubuntu/analysis/weight_mapper.py \
+-reducer /home/ubuntu/analysis/weight_reducer.py
+
+
+hadoop jar /usr/local/hadoop/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-input /ecg_data/splits/train_meta_50.csv \
+-output /ecg_output/incremental/50 \
+-mapper /home/ubuntu/analysis/weight_mapper.py \
+-reducer /home/ubuntu/analysis/weight_reducer.py
+
+
+hadoop jar /usr/local/hadoop/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-input /ecg_data/splits/train_meta_75.csv \
+-output /ecg_output/incremental/75 \
+-mapper /home/ubuntu/analysis/weight_mapper.py \
+-reducer /home/ubuntu/analysis/weight_reducer.py
+
+
+hadoop jar /usr/local/hadoop/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+-input /ecg_data/splits/train_meta_100.csv \
+-output /ecg_output/incremental/100 \
+-mapper /home/ubuntu/analysis/weight_mapper.py \
+-reducer /home/ubuntu/analysis/weight_reducer.py
+
+
+
+
+# 5. Performance Measurement Commands
+
+
+# Check execution time and logs (incremental processing)
+yarn logs -applicationId <application_id> | grep "Total time spent"
+
+
+# Check execution time and logs (scale-up processing)
+yarn logs -applicationId <application_id> | grep "Total time spent"
+
+
+
+
+# 6. Retrieve Output from HDFS
+
+
+# Diagnosis Distribution Results
+hadoop fs -cat /ecg_output/diagnosis_distribution/part-00000
+
+
+# Average Age by Diagnosis Results
+hadoop fs -cat /ecg_output/average_age/part-00000
+
+
+# Weight-Diagnosis Correlation Results
+hadoop fs -cat /ecg_output/weight_diagnosis_correlation/part-00000
+
+
+# Incremental Processing Results
+hadoop fs -cat /ecg_output/incremental/25/part-00000
+hadoop fs -cat /ecg_output/incremental/50/part-00000
+hadoop fs -cat /ecg_output/incremental/75/part-00000
+hadoop fs -cat /ecg_output/incremental/100/part-00000
